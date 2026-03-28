@@ -1,0 +1,30 @@
+- [x] **Phase 1: Setup & Environment**
+    - [x] Initialize Vite + React (TS)
+    - [x] Install dependencies (Tailwind, shadcn, Framer Motion, Zustand, etc.)
+    - [x] Configure Tailwind & PostCSS
+    - [x] Initialize shadcn/ui
+- [x] **Phase 2: Global Styles & Design System**
+    - [x] Set up `globals.css` with dark-mode variables
+    - [x] Configure `tailwind.config.js` with premium colors
+- [x] **Phase 3: Core Layouts & Sidebar**
+    - [x] Create `MainLayout` with collapsible Sidebar
+    - [x] Create `AuthLayout` for split-screen branding
+    - [x] Implement `Navbar` with Search and Theme Toggle
+- [x] **Phase 4: State Management & Services**
+    - [x] Setup Zustand stores (`auth`, `chat`, `notes`, `ui`)
+    - [x] Create mock API services with Axios
+- [x] **Phase 5: Authentication Pages**
+    - [x] Build Login page
+    - [x] Build Signup page
+- [x] **Phase 6: Feature Pages**
+    - [x] **Chat Page**: ChatGPT-like UI with message bubbles
+    - [x] **Notes Page**: Notion-inspired editor and list
+    - [x] **Files Page**: Drag-and-drop upload and preview
+    - [x] **Settings Page**: Profile and preferences
+- [x] **Phase 7: Advanced Features**
+    - [x] Global Search (Ctrl+K) command palette
+    - [x] Framer Motion page transitions
+    - [x] Skeleton loaders and Toasts
+- [x] **Phase 8: Final Polish & Verification**
+    - [x] Ensure mobile responsiveness
+    - [x] Run production build and verify
