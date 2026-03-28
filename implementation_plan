@@ -1,0 +1,81 @@
+# Implementation Plan - Modern AI SaaS Frontend
+
+Build a premium, production-level AI SaaS frontend with modern UI/UX principles (Notion/ChatGPT/Stripe inspired).
+
+## User Review Required
+
+> [!IMPORTANT]
+> The application will be a **frontend-only** implementation with a mock API layer (services) to allow immediate testing and demonstration. You will need to provide your actual backend URLs in the `src/services` layer later.
+
+> [!TIP]
+> I will use **Zustand** for state management as it is more lightweight and modern for this scale of project compared to Redux, though Redux Toolkit remains an option if requested.
+
+## Proposed Changes
+
+### Phase 1: Foundation & Setup
+- [ ] Initialize Vite + React + TypeScript project
+- [ ] Setup Tailwind CSS & PostCSS
+- [ ] Initialize shadcn/ui and install base components:
+    - `Button`, `Input`, `Card`, `Dialog`, `DropdownMenu`, `Tabs`, `ScrollArea`, `Sheet`, `Toaster`, `Skeleton`, `Avatar`
+- [ ] Setup Framer Motion for global animations
+- [ ] Configure `lucide-react` for iconography
+
+### Phase 2: Core Components & Layouts
+#### [NEW] `MainLayout.tsx`
+- Sidebar (collapsible) with active state management
+- Top Navbar with Search (Ctrl+K), profile, and theme toggle
+- Responsive container for page content
+
+#### [NEW] `AuthLayout.tsx`
+- Split-screen branding + form layout
+
+#### [NEW] `design-system` (`globals.css`)
+- Dark-mode first CSS variables
+- Premium glassmorphism effects and modern typography (Inter/Geist)
+
+### Phase 3: State Management & Services
+#### [NEW] `store/`
+- `useAuthStore`: Session management
+- `useChatStore`: Message history and stream simulation
+- `useNotesStore`: CRUD for notes
+- `useUIStore`: Theme, sidebar toggle, search modal state
+
+#### [NEW] `services/`
+- `api.ts`: Base Axios instance with interceptors
+- `chatService.ts`, `noteService.ts`, `fileService.ts`: Mocked API calls with simulated latency
+
+### Phase 4: Feature Pages
+#### [NEW] `ChatPage.tsx`
+- Message bubbles with Tailwind styling
+- Markdown support & code highlighting
+- Auto-scroll and typing indicators
+
+#### [NEW] `NotesPage.tsx`
+- Split view: List navigation + Rich text inspired editor
+- AI Summary integration button
+
+#### [NEW] `FilesPage.tsx`
+- Drag & Drop zone using `react-dropzone`
+- Grid/List view with file previews and progress bars
+
+### Phase 5: Advanced UI/UX
+- [ ] **Command Palette**: Implementation of `cmdk` for Ctrl+K search
+- [ ] **Animations**: Page transitions using `AnimatePresence`
+- [ ] **Toasts**: Success/Error notifications for all actions
+- [ ] **Skeletons**: Loading states for initial data fetching
+
+## Open Questions
+
+- Should I include a real Rich Text Editor (like TipTap or Quill) for the Notes page, or a simplified Notion-like textarea for the MVP?
+- Do you have a preferred color palette (e.g., Deep Indigo/Slate like Stripe, or Pure Black/White like ChatGPT)?
+
+## Verification Plan
+
+### Automated Tests
+- `npm run build` to ensure no TypeScript or build errors.
+- Lighthouse performance check for accessibility and SEO.
+
+### Manual Verification
+- Verify responsiveness on Mobile/Tablet viewports in browser.
+- Test keyboard navigation for the Command Palette (Ctrl+K).
+- Simulate "AI response" delay to ensure loading states look premium.
