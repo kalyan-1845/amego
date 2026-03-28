@@ -1,26 +1,30 @@
 import { Outlet } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
-import { useState } from 'react';
+import SearchModal from '../components/SearchModal';
+import { useUIStore } from '../store/uiStore';
 
 const MainLayout = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const { isSidebarOpen, toggleSidebar } = useUIStore();
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
+    <div className="flex h-screen bg-background text-foreground overflow-hidden font-sans selection:bg-primary/20 selection:text-primary">
       {/* Sidebar */}
-      <Sidebar isOpen={isSidebarOpen} toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)} />
+      <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
 
       {/* Main Content Area */}
-      <div className="flex flex-col flex-1 overflow-hidden">
+      <div className="flex flex-col flex-1 overflow-hidden relative">
         {/* Navbar */}
         <Navbar />
 
         {/* Page Content */}
-        <main className="flex-1 overflow-auto p-4 md:p-6 lg:p-8 animate-in fade-in duration-500">
+        <main className="flex-1 overflow-auto p-4 md:p-6 lg:p-10 relative scrollbar-thin scrollbar-thumb-border">
           <Outlet />
         </main>
       </div>
+
+      {/* Global Search Modal */}
+      <SearchModal />
     </div>
   );
 };

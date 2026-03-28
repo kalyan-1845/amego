@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, User, Bot, Sparkles, Paperclip, MoreHorizontal, Trash2 } from 'lucide-react';
-import { useChatStore, Message } from '../store/chatStore';
+import { useChatStore, type Message } from '../store/chatStore';
 import { cn } from '../utils/cn';
 
 const ChatPage = () => {
@@ -66,7 +66,7 @@ const ChatPage = () => {
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 scrollbar-thin scrollbar-thumb-border">
         <AnimatePresence initial={false}>
-          {messages.map((message, index) => (
+          {messages.map((message) => (
             <motion.div
               key={message.id}
               initial={{ opacity: 0, scale: 0.95, y: 10 }}

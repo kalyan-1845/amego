@@ -4,9 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   File, 
   Upload, 
-  X, 
   CheckCircle2, 
-  AlertCircle, 
   MoreHorizontal, 
   Download, 
   Trash2,

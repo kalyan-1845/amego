@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState } from 'react';
 import { 
   Plus, 
   Search, 
@@ -8,12 +7,10 @@ import {
   Sparkles, 
   ChevronRight, 
   MoreVertical,
-  Calendar,
   Clock,
-  LayoutGrid,
-  List
+  LayoutGrid
 } from 'lucide-react';
-import { useNotesStore, Note } from '../store/notesStore';
+import { useNotesStore, type Note } from '../store/notesStore';
 import { cn } from '../utils/cn';
 import { formatDistanceToNow } from 'date-fns';
 

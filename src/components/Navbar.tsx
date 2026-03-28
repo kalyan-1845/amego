@@ -9,18 +9,13 @@ import {
   HelpCircle,
   LogOut
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { cn } from '../utils/cn';
+import { useUIStore } from '../store/uiStore';
 
 const Navbar = () => {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const { theme, toggleTheme, setSearchOpen } = useUIStore();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-
-  // Theme toggle logic (basic mock)
-  const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode);
-    document.documentElement.classList.toggle('dark');
-  };
 
   return (
     <header className="h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-30 flex items-center justify-between px-6 lg:px-8">
@@ -28,7 +23,7 @@ const Navbar = () => {
       <div className="flex-1 flex items-center">
         <button 
           className="flex h-10 w-full max-w-sm px-4 items-center gap-2 rounded-xl bg-muted/60 text-muted-foreground border border-transparent hover:bg-muted hover:border-border transition-all text-sm group"
-          onClick={() => console.log('Open search modal')}
+          onClick={() => setSearchOpen(true)}
         >
           <Search className="h-4 w-4 group-hover:text-foreground active:scale-95 transition-all" />
           <span className="flex-1 text-left">Search anything...</span>
@@ -51,7 +46,7 @@ const Navbar = () => {
           onClick={toggleTheme}
           className="h-9 w-9 rounded-full flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground transition-all"
         >
-          {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
         </button>
 
         <div className="h-6 w-px bg-border mx-1" />
