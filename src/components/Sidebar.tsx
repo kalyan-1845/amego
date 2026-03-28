@@ -5,8 +5,6 @@ import {
   Files, 
   Settings, 
   LogOut, 
-  Menu, 
-  X, 
   ChevronLeft,
   ChevronRight,
   User,

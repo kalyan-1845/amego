@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Mail, Lock, UserPlus } from 'lucide-react';
+import { Mail, Lock } from 'lucide-react';
 
 const LoginPage = () => {
   return (

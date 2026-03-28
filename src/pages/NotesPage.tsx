@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { 
   Plus, 
   Search, 
@@ -10,7 +9,7 @@ import {
   Clock,
   LayoutGrid
 } from 'lucide-react';
-import { useNotesStore, type Note } from '../store/notesStore';
+import { useNotesStore } from '../store/notesStore';
 import { cn } from '../utils/cn';
 import { formatDistanceToNow } from 'date-fns';
 

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, User, Bot, Sparkles, Paperclip, MoreHorizontal, Trash2 } from 'lucide-react';
-import { useChatStore, type Message } from '../store/chatStore';
+import { useChatStore } from '../store/chatStore';
 import { cn } from '../utils/cn';
 
 const ChatPage = () => {
