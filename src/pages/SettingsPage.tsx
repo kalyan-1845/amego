@@ -19,7 +19,7 @@ import { useUIStore } from '../store/uiStore';
 
 const SettingsPage = () => {
   const [activeTab, setActiveTab] = useState('profile');
-  const { theme, toggleTheme } = useUIStore();
+  const { theme, setTheme, logout } = useUIStore();
 
   const tabs = [
     { id: 'profile', label: 'Profile Settings', icon: User },
@@ -65,8 +65,11 @@ const SettingsPage = () => {
 
           <div className="h-px bg-border my-4" />
 
-          <button className="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-red-500 hover:bg-red-500/10 transition-all font-bold">
-            <LogOut className="h-5 w-5" />
+          <button 
+            onClick={logout}
+            className="flex items-center gap-3 px-4 py-3.5 rounded-2xl text-red-500 hover:bg-red-500/10 transition-all font-bold group"
+          >
+            <LogOut className="h-5 w-5 group-hover:scale-110 transition-transform" />
             Sign out
           </button>
         </div>
@@ -162,7 +165,7 @@ const SettingsPage = () => {
 
                 <div className="grid grid-cols-2 gap-6">
                   <button 
-                    onClick={() => theme === 'dark' && toggleTheme()}
+                    onClick={() => setTheme('light')}
                     className={cn(
                         "p-8 rounded-3xl border-2 transition-all group flex flex-col items-center gap-4",
                         theme === 'light' ? "border-primary bg-primary/5 shadow-2xl" : "border-border/30 bg-muted/30 hover:border-border"
@@ -174,7 +177,7 @@ const SettingsPage = () => {
                     <span className="font-bold">Light Mode</span>
                   </button>
                   <button 
-                    onClick={() => theme === 'light' && toggleTheme()}
+                    onClick={() => setTheme('dark')}
                     className={cn(
                         "p-8 rounded-3xl border-2 transition-all group flex flex-col items-center gap-4",
                         theme === 'dark' ? "border-primary bg-primary/5 shadow-2xl" : "border-border/30 bg-muted/30 hover:border-border"

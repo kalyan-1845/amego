@@ -16,18 +16,18 @@ interface UIState {
   toggleSidebar: () => void;
   setSearchOpen: (open: boolean) => void;
   toggleTheme: () => void;
+  setTheme: (theme: 'light' | 'dark') => void;
   markAsRead: (id: string) => void;
+  logout: () => void;
 }
 
 export const useUIStore = create<UIState>((set) => {
-  // Initialize theme from store (default 'dark')
-  if (typeof document !== 'undefined') {
-    if (localStorage.getItem('ui-theme') === 'light') {
-      document.documentElement.classList.remove('dark');
-    } else {
-      document.documentElement.classList.add('dark');
-    }
-  }
+  // Sync logic
+  const syncTheme = (theme: 'light' | 'dark') => {
+    localStorage.setItem('ui-theme', theme);
+    if (theme === 'dark') document.documentElement.classList.add('dark');
+    else document.documentElement.classList.remove('dark');
+  };
 
   return {
     isSidebarOpen: true,
@@ -41,14 +41,18 @@ export const useUIStore = create<UIState>((set) => {
     setSearchOpen: (open) => set({ isSearchOpen: open }),
     toggleTheme: () => set((state) => {
       const newTheme = state.theme === 'light' ? 'dark' : 'light';
-      localStorage.setItem('ui-theme', newTheme);
-      if (newTheme === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
+      syncTheme(newTheme);
       return { theme: newTheme };
     }),
+    setTheme: (theme) => {
+        syncTheme(theme);
+        set({ theme });
+    },
+    logout: () => {
+        // Mock logout - clear history if we wanted, but for demo just clear 'auth'
+        console.log("Logged Out");
+        window.location.href = '/login';
+    },
     markAsRead: (id) => set((state) => ({
       notifications: state.notifications.map(n => n.id === id ? { ...n, read: true } : n)
     })),
