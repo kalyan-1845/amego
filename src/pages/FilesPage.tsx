@@ -15,7 +15,8 @@ import {
   List as ListIcon
 } from 'lucide-react';
 import { cn } from '../utils/cn';
-import { useFilesStore, FileItem } from '../store/filesStore';
+import { useFilesStore } from '../store/filesStore';
+import type { FileItem } from '../store/filesStore';
 
 const FilesPage = () => {
   const { files, addFiles, updateFile, removeFile } = useFilesStore();
