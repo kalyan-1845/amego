@@ -1,0 +1,5 @@
+fastapi
+uvicorn
+openai
+python-dotenv
+and hel center make that should as automation ai 

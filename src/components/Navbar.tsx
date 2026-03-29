@@ -14,8 +14,10 @@ import { cn } from '../utils/cn';
 import { useUIStore } from '../store/uiStore';
 
 const Navbar = () => {
-  const { theme, toggleTheme, setSearchOpen } = useUIStore();
+  const { theme, toggleTheme, setSearchOpen, notifications, markAsRead } = useUIStore();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
     <header className="h-16 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-30 flex items-center justify-between px-6 lg:px-8">
@@ -36,10 +38,41 @@ const Navbar = () => {
       {/* Right Side Actions */}
       <div className="flex items-center gap-2 sm:gap-4 ml-4">
         {/* Notifications */}
-        <button className="h-9 w-9 rounded-full flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground transition-all relative">
-          <Bell className="h-5 w-5" />
-          <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500 ring-2 ring-background ring-offset-0" />
-        </button>
+        <div className="relative">
+          <button 
+            onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+            className="h-9 w-9 rounded-full flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-foreground transition-all relative"
+          >
+            <Bell className="h-5 w-5" />
+            {unreadCount > 0 && <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500 ring-2 ring-background ring-offset-0" />}
+          </button>
+
+          {isNotificationsOpen && (
+            <div className="absolute right-0 mt-2 w-80 rounded-2xl border border-border bg-card p-2 shadow-2xl animate-in fade-in zoom-in-95 duration-200 z-50">
+              <div className="p-3 border-b border-border flex items-center justify-between">
+                <h4 className="text-sm font-bold">Notifications</h4>
+                <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold">{unreadCount} New</span>
+              </div>
+              <div className="max-h-80 overflow-y-auto py-1">
+                {notifications.map((n) => (
+                  <button
+                    key={n.id}
+                    onClick={() => markAsRead(n.id)}
+                    className={cn(
+                      "w-full text-left p-3 rounded-xl hover:bg-muted transition-all flex flex-col gap-0.5 relative",
+                      !n.read && "bg-primary/5"
+                    )}
+                  >
+                    <p className="text-sm font-bold">{n.title}</p>
+                    <p className="text-xs text-muted-foreground">{n.message}</p>
+                    <span className="text-[10px] text-muted-foreground/60 mt-1">{n.time}</span>
+                    {!n.read && <div className="absolute top-4 right-4 h-1.5 w-1.5 rounded-full bg-primary" />}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Theme Toggle */}
         <button 

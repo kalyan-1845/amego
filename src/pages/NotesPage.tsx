@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { 
   Plus, 
   Search, 
@@ -16,6 +17,7 @@ import { formatDistanceToNow } from 'date-fns';
 const NotesPage = () => {
   const { notes, activeNoteId, addNote, updateNote, deleteNote, setActiveNote } = useNotesStore();
   const activeNote = notes.find((n) => n.id === activeNoteId) || notes[0];
+  const [isSummarizing, setIsSummarizing] = useState(false);
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (activeNote) {
@@ -29,10 +31,28 @@ const NotesPage = () => {
     }
   };
 
-  const handleSummarize = () => {
-    if (!activeNote) return;
-    const summary = "\n\n--- \n**AI Summary:** This note discusses key strategies for project execution, emphasizing real-time collaboration and modern UI principles.";
-    updateNote(activeNote.id, { content: activeNote.content + summary });
+  const handleSummarize = async () => {
+    if (!activeNote || !activeNote.content) return;
+    
+    setIsSummarizing(true);
+    try {
+      const response = await fetch('http://localhost:8000/summarize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: activeNote.content }),
+      });
+      const data = await response.json();
+      
+      if (data.reply) {
+        const summary = `\n\n--- \n**AI Summary:**\n${data.reply}`;
+        updateNote(activeNote.id, { content: activeNote.content + summary });
+      }
+    } catch (error) {
+      console.error("Summarization failed:", error);
+      alert("Failed to summarize. Make sure the Python backend is running on port 8000.");
+    } finally {
+      setIsSummarizing(false);
+    }
   };
 
   return (
@@ -121,10 +141,14 @@ const NotesPage = () => {
               <div className="flex items-center gap-2">
                 <button 
                   onClick={handleSummarize}
-                  className="flex items-center gap-2 px-3 py-1.5 border border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary rounded-lg text-xs font-semibold transition-all hover:scale-[1.02] active:scale-[0.98] shadow-sm shadow-primary/10"
+                  disabled={isSummarizing}
+                  className={cn(
+                    "flex items-center gap-2 px-3 py-1.5 border border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary rounded-lg text-xs font-semibold transition-all hover:scale-[1.02] active:scale-[0.98] shadow-sm shadow-primary/10",
+                    isSummarizing && "opacity-50 cursor-not-allowed animate-pulse"
+                  )}
                 >
-                  <Sparkles className="h-3.5 w-3.5" />
-                  Summarize
+                  <Sparkles className={cn("h-3.5 w-3.5", isSummarizing && "animate-spin")} />
+                  {isSummarizing ? "Summarizing..." : "Summarize"}
                 </button>
                 <button className="p-2 hover:bg-muted rounded-lg transition-all text-muted-foreground hover:text-foreground">
                   <MoreVertical className="h-4 w-4" />

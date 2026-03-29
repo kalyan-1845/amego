@@ -15,9 +15,11 @@ import {
 } from 'lucide-react';
 import { cn } from '../utils/cn';
 
+import { useUIStore } from '../store/uiStore';
+
 const SettingsPage = () => {
   const [activeTab, setActiveTab] = useState('profile');
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  const { theme, toggleTheme } = useUIStore();
 
   const tabs = [
     { id: 'profile', label: 'Profile Settings', icon: User },
@@ -160,10 +162,10 @@ const SettingsPage = () => {
 
                 <div className="grid grid-cols-2 gap-6">
                   <button 
-                    onClick={() => setIsDarkMode(false)}
+                    onClick={() => theme === 'dark' && toggleTheme()}
                     className={cn(
                         "p-8 rounded-3xl border-2 transition-all group flex flex-col items-center gap-4",
-                        !isDarkMode ? "border-primary bg-primary/5 shadow-2xl" : "border-border/30 bg-muted/30 hover:border-border"
+                        theme === 'light' ? "border-primary bg-primary/5 shadow-2xl" : "border-border/30 bg-muted/30 hover:border-border"
                     )}
                   >
                     <div className="h-16 w-16 rounded-2xl bg-white border border-border flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
@@ -172,10 +174,10 @@ const SettingsPage = () => {
                     <span className="font-bold">Light Mode</span>
                   </button>
                   <button 
-                    onClick={() => setIsDarkMode(true)}
+                    onClick={() => theme === 'light' && toggleTheme()}
                     className={cn(
                         "p-8 rounded-3xl border-2 transition-all group flex flex-col items-center gap-4",
-                        isDarkMode ? "border-primary bg-primary/5 shadow-2xl" : "border-border/30 bg-muted/30 hover:border-border"
+                        theme === 'dark' ? "border-primary bg-primary/5 shadow-2xl" : "border-border/30 bg-muted/30 hover:border-border"
                     )}
                   >
                     <div className="h-16 w-16 rounded-2xl bg-zinc-950 border border-zinc-800 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
@@ -183,6 +185,55 @@ const SettingsPage = () => {
                     </div>
                     <span className="font-bold">Dark Mode</span>
                   </button>
+                </div>
+
+                <div className="space-y-4 pt-8 border-t border-border/30">
+                  <h4 className="text-lg font-bold">Accent Color</h4>
+                   <div className="flex gap-4">
+                      {['blue', 'purple', 'emerald', 'rose', 'amber'].map((color) => (
+                        <button 
+                          key={color} 
+                          className={cn(
+                            "h-10 w-10 rounded-full border-2 transition-all",
+                            color === 'blue' ? "bg-blue-500 border-primary" : `bg-${color}-500 border-transparent hover:scale-110`
+                          )}
+                        />
+                      ))}
+                   </div>
+                </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'notifications' && (
+              <motion.div
+                key="notifications"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-8"
+              >
+                <div className="space-y-4">
+                  <h3 className="text-2xl font-black">Notifications</h3>
+                  <p className="text-muted-foreground">Manage how you receive alerts and updates.</p>
+                </div>
+
+                <div className="space-y-4">
+                  {[
+                    { label: 'Push Notifications', desc: 'Receive real-time alerts on your device.' },
+                    { label: 'Email Summaries', desc: 'Get weekly activity summaries via email.' },
+                    { label: 'AI Insights', desc: 'New AI suggestions and note summaries.' },
+                    { label: 'Team Activity', desc: 'Alerts when someone edits a shared note.' }
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-center justify-between p-6 bg-muted/30 rounded-3xl border border-border/30">
+                      <div>
+                        <p className="font-bold">{item.label}</p>
+                        <p className="text-sm text-muted-foreground">{item.desc}</p>
+                      </div>
+                      <div className="h-6 w-12 bg-primary rounded-full relative p-1 cursor-pointer">
+                        <div className="h-4 w-4 bg-white rounded-full absolute right-1" />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </motion.div>
             )}
