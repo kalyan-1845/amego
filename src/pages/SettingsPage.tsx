@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   User, 
@@ -20,6 +20,16 @@ import { useUIStore } from '../store/uiStore';
 const SettingsPage = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const { theme, setTheme, logout } = useUIStore();
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setProfileImage(url);
+    }
+  };
 
   const tabs = [
     { id: 'profile', label: 'Profile Settings', icon: User },
@@ -92,8 +102,22 @@ const SettingsPage = () => {
                 <div className="space-y-4">
                   <h3 className="text-2xl font-black">Personal Identity</h3>
                   <div className="flex items-center gap-8 p-6 bg-muted/30 border border-border/30 rounded-3xl group/avatar transition-all hover:bg-muted/50">
-                    <div className="relative h-24 w-24 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-indigo-600 ring-4 ring-background shadow-xl ring-offset-2 ring-offset-primary/20 group-hover/avatar:scale-105 transition-transform">
-                      <User className="h-full w-full p-6 text-white" />
+                    <input 
+                      type="file" 
+                      ref={avatarInputRef} 
+                      className="hidden" 
+                      accept="image/*"
+                      onChange={handleAvatarChange}
+                    />
+                    <div 
+                      onClick={() => avatarInputRef.current?.click()}
+                      className="relative h-24 w-24 rounded-full overflow-hidden bg-gradient-to-br from-blue-500 to-indigo-600 ring-4 ring-background shadow-xl ring-offset-2 ring-offset-primary/20 group-hover/avatar:scale-105 transition-all cursor-pointer"
+                    >
+                      {profileImage ? (
+                        <img src={profileImage} alt="Avatar" className="w-full h-full object-cover" />
+                      ) : (
+                        <User className="h-full w-full p-6 text-white" />
+                      )}
                       <button className="absolute inset-0 bg-black/40 opacity-0 group-hover/avatar:opacity-100 flex items-center justify-center transition-opacity">
                         <Camera className="h-6 w-6 text-white" />
                       </button>
@@ -104,7 +128,12 @@ const SettingsPage = () => {
                         <Globe className="h-4 w-4" />
                         San Francisco, CA
                       </p>
-                      <button className="mt-4 text-xs font-black text-primary hover:text-primary/80 uppercase tracking-widest bg-primary/10 px-4 py-2 rounded-full border border-primary/20 transition-all active:scale-95">Update Picture</button>
+                      <button 
+                        onClick={() => avatarInputRef.current?.click()}
+                        className="mt-4 text-xs font-black text-primary hover:text-primary/80 uppercase tracking-widest bg-primary/10 px-4 py-2 rounded-full border border-primary/20 transition-all active:scale-95"
+                      >
+                        Update Picture
+                      </button>
                     </div>
                   </div>
                 </div>
