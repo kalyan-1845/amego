@@ -7,7 +7,8 @@
     "dev": "vite",
     "dev:go": "cd backend-go && go run main.go",
     "dev:python": "cd backend-python && python main.py",
-    "dev:all": "concurrently \"npm run dev\" \"npm run dev:go\" \"npm run dev:python\"",
+    "dev:backends": "concurrently -n \"GO,PY\" -c \"cyan,yellow\" \"npm run dev:go\" \"npm run dev:python\"",
+    "dev:all": "concurrently -n \"WEB,BACK\" -c \"blue,magenta\" \"npm run dev\" \"npm run dev:backends\"",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"

@@ -238,11 +238,83 @@ const SettingsPage = () => {
               </motion.div>
             )}
 
-            {activeTab !== 'profile' && activeTab !== 'appearance' && (
-               <div className="flex flex-col items-center justify-center h-full text-center opacity-50 grayscale">
-                    <Settings className="h-24 w-24 mb-6 animate-spin-slow" />
-                    <h3 className="text-2xl font-black italic">Coming Soon</h3>
-               </div>
+            {activeTab === 'security' && (
+              <motion.div
+                key="security"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-8"
+              >
+                <div className="space-y-4">
+                  <h3 className="text-2xl font-black">Account Security</h3>
+                  <p className="text-muted-foreground">Protect your account with advanced security features.</p>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="p-6 bg-muted/30 rounded-3xl border border-border/30 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="h-12 w-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500">
+                        <Shield className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <p className="font-bold">Two-Factor Authentication</p>
+                        <p className="text-xs text-muted-foreground">Add an extra layer of security to your account.</p>
+                      </div>
+                    </div>
+                    <button className="px-5 py-2 bg-primary/10 text-primary font-bold rounded-xl hover:bg-primary/20 transition-all">Enable</button>
+                  </div>
+
+                  <div className="p-6 bg-muted/30 rounded-3xl border border-border/30 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="h-12 w-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500">
+                        <LogOut className="h-6 w-6" />
+                      </div>
+                      <div>
+                        <p className="font-bold">Active Sessions</p>
+                        <p className="text-xs text-muted-foreground">Logged in from 3 devices (SF, London, Tokyo)</p>
+                      </div>
+                    </div>
+                    <button className="px-5 py-2 text-muted-foreground font-bold hover:text-red-500 transition-all">Logout Others</button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'billing' && (
+              <motion.div
+                key="billing"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-8"
+              >
+                <div className="space-y-4">
+                  <h3 className="text-2xl font-black">Subscription Plan</h3>
+                  <p className="text-muted-foreground">You are currently on the Pro Plan.</p>
+                </div>
+
+                <div className="p-8 bg-gradient-to-br from-primary to-indigo-600 rounded-[32px] text-white shadow-2xl relative overflow-hidden group">
+                  <div className="relative z-10">
+                    <div className="flex justify-between items-start mb-12">
+                      <div>
+                        <span className="px-3 py-1 bg-white/20 backdrop-blur rounded-full text-[10px] uppercase font-black tracking-widest">Active Plan</span>
+                        <h4 className="text-3xl font-black mt-2">Pro Member</h4>
+                      </div>
+                      <CreditCard className="h-10 w-10 opacity-50 group-hover:scale-110 transition-transform" />
+                    </div>
+                    <div className="space-y-2 mb-8">
+                       <p className="text-white/70 text-sm font-medium">Billed Monthly</p>
+                       <p className="text-4xl font-black">$29<span className="text-lg font-normal opacity-50">/mo</span></p>
+                    </div>
+                    <div className="flex gap-4">
+                      <button className="px-6 py-3 bg-white text-primary font-black rounded-xl hover:scale-105 transition-all active:scale-95">Upgrade Plan</button>
+                      <button className="px-6 py-3 bg-white/10 backdrop-blur text-white font-bold rounded-xl hover:bg-white/20 transition-all">Manage Billing</button>
+                    </div>
+                  </div>
+                  <div className="absolute -bottom-12 -right-12 h-64 w-64 bg-white/10 rounded-full blur-3xl" />
+                </div>
+              </motion.div>
             )}
           </AnimatePresence>
         </div>
