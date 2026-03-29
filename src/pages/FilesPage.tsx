@@ -17,37 +17,10 @@ import {
 } from 'lucide-react';
 import { cn } from '../utils/cn';
 
-interface FileItem {
-  id: string;
-  name: string;
-  size: number;
-  type: string;
-  progress: number;
-  status: 'uploading' | 'completed' | 'error';
-  uploadedAt: number;
-}
+import { useFilesStore, FileItem } from '../store/filesStore';
 
 const FilesPage = () => {
-  const [files, setFiles] = useState<FileItem[]>([
-    {
-      id: '1',
-      name: 'System Architecture.pdf',
-      size: 1024 * 1024 * 3.5,
-      type: 'application/pdf',
-      progress: 100,
-      status: 'completed',
-      uploadedAt: Date.now() - 86400000,
-    },
-    {
-      id: '2',
-      name: 'Brand Assets.zip',
-      size: 1024 * 1024 * 12.8,
-      type: 'application/zip',
-      progress: 100,
-      status: 'completed',
-      uploadedAt: Date.now() - 172800000,
-    },
-  ]);
+  const { files, addFiles, updateFile, removeFile } = useFilesStore();
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const newFiles: FileItem[] = acceptedFiles.map((file) => ({
@@ -60,7 +33,7 @@ const FilesPage = () => {
       uploadedAt: Date.now(),
     }));
 
-    setFiles((prev) => [...newFiles, ...prev]);
+    addFiles(newFiles);
 
     // Simulate progress
     newFiles.forEach((file) => {
@@ -70,23 +43,13 @@ const FilesPage = () => {
         if (prog >= 100) {
           prog = 100;
           clearInterval(interval);
-          setFiles((current) => 
-            current.map((f) => f.id === file.id ? { ...f, progress: 100, status: 'completed' } : f)
-          );
+          updateFile(file.id, { progress: 100, status: 'completed' });
         } else {
-          setFiles((current) => 
-            current.map((f) => f.id === file.id ? { ...f, progress: Math.min(prog, 95) } : f)
-          );
+          updateFile(file.id, { progress: Math.min(prog, 95) });
         }
       }, 500);
     });
-  }, []);
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
-
-  const removeFile = (id: string) => {
-    setFiles((prev) => prev.filter((f) => f.id !== id));
-  };
+  }, [addFiles, updateFile]);
 
   const getFileIcon = (type: string) => {
     if (type.includes('image')) return <ImageIcon className="h-6 w-6 text-pink-500" />;
