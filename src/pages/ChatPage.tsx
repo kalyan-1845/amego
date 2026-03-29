@@ -8,6 +8,8 @@ const ChatPage = () => {
   const [inputValue, setInputValue] = useState('');
   const { messages, isLoading, addMessage, setLoading, clearMessages } = useChatStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [isMoreOpen, setIsMoreOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -30,10 +32,28 @@ const ChatPage = () => {
     setTimeout(() => {
       addMessage({ 
         role: 'assistant', 
-        content: `I've received your message: "${userMessage}". As an AI, I'm here to help you brainstorm ideas, summarize documents, or just chat. What else would you like to explore?` 
+        content: `I've received your message: "${userMessage}". As an AI assistant, I'm analyzing your request. How else can I help you today?` 
       });
       setLoading(false);
     }, 1500);
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      addMessage({ 
+        role: 'user', 
+        content: `[File Uploaded] ${file.name} (${(file.size / 1024).toFixed(1)} KB)` 
+      });
+      setLoading(true);
+      setTimeout(() => {
+        addMessage({ 
+          role: 'assistant', 
+          content: `I've received your file "${file.name}". I can help you analyze its contents or summarize it. What would you like me to do?` 
+        });
+        setLoading(false);
+      }, 1500);
+    }
   };
 
   return (
@@ -57,9 +77,40 @@ const ChatPage = () => {
           >
             <Trash2 className="h-5 w-5" />
           </button>
-          <button className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl transition-all">
-            <MoreHorizontal className="h-5 w-5" />
-          </button>
+          
+          <div className="relative">
+            <button 
+              onClick={() => setIsMoreOpen(!isMoreOpen)}
+              className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl transition-all"
+            >
+              <MoreHorizontal className="h-5 w-5" />
+            </button>
+            
+            <AnimatePresence>
+              {isMoreOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setIsMoreOpen(false)} />
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                    className="absolute right-0 mt-2 w-48 rounded-2xl border border-border bg-card p-2 shadow-2xl z-50 overflow-hidden"
+                  >
+                    <button className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-all">
+                      Export Chat
+                    </button>
+                    <button className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-all">
+                      Settings
+                    </button>
+                    <div className="h-px bg-border my-1" />
+                    <button className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-red-500 hover:bg-red-500/10 transition-all">
+                      Delete History
+                    </button>
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
 
@@ -127,7 +178,17 @@ const ChatPage = () => {
           className="relative max-w-4xl mx-auto group"
         >
           <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
-            <button type="button" className="p-1.5 text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted">
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              className="hidden" 
+              onChange={handleFileUpload}
+            />
+            <button 
+              type="button" 
+              onClick={() => fileInputRef.current?.click()}
+              className="p-1.5 text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted"
+            >
               <Paperclip className="h-5 w-5" />
             </button>
           </div>

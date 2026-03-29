@@ -164,16 +164,23 @@ const FilesPage = () => {
                 className="group relative bg-card border border-border/50 hover:border-primary/30 rounded-2xl p-4 shadow-sm hover:shadow-xl hover:shadow-primary/5 transition-all duration-300"
               >
                 <div className="flex items-start gap-4">
-                  <div className="h-12 w-12 rounded-xl bg-muted/50 flex items-center justify-center border border-border/30 group-hover:scale-110 transition-transform">
+                  <div className="h-12 w-12 rounded-xl bg-muted/50 flex items-center justify-center border border-border/30 group-hover:scale-110 transition-transform text-foreground">
                     {getFileIcon(file.type)}
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="font-semibold text-sm truncate group-hover:text-primary transition-colors">{file.name}</h4>
                     <p className="text-[10px] text-muted-foreground mt-0.5 font-medium uppercase tracking-wider">{formatSize(file.size)}</p>
                   </div>
-                  <button className="p-1 hover:bg-muted rounded text-muted-foreground transition-all">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </button>
+                  
+                  <div className="relative">
+                    <button 
+                      onClick={() => removeFile(file.id)}
+                      className="p-1 hover:bg-red-500/10 rounded text-muted-foreground hover:text-red-500 transition-all"
+                      title="Delete File"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
 
                 <div className="mt-4">
