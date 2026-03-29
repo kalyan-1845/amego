@@ -1,11 +1,10 @@
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   File, 
   Upload, 
   CheckCircle2, 
-  MoreHorizontal, 
   Download, 
   Trash2,
   FileText,
@@ -16,7 +15,6 @@ import {
   List as ListIcon
 } from 'lucide-react';
 import { cn } from '../utils/cn';
-
 import { useFilesStore, FileItem } from '../store/filesStore';
 
 const FilesPage = () => {
@@ -50,6 +48,8 @@ const FilesPage = () => {
       }, 500);
     });
   }, [addFiles, updateFile]);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
 
   const getFileIcon = (type: string) => {
     if (type.includes('image')) return <ImageIcon className="h-6 w-6 text-pink-500" />;
@@ -134,22 +134,18 @@ const FilesPage = () => {
                     <h4 className="font-semibold text-sm truncate group-hover:text-primary transition-colors">{file.name}</h4>
                     <p className="text-[10px] text-muted-foreground mt-0.5 font-medium uppercase tracking-wider">{formatSize(file.size)}</p>
                   </div>
-                  
-                  <div className="relative">
-                    <button 
-                      onClick={() => removeFile(file.id)}
-                      className="p-1 hover:bg-red-500/10 rounded text-muted-foreground hover:text-red-500 transition-all"
-                      title="Delete File"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
+                  <button 
+                    onClick={() => removeFile(file.id)}
+                    className="p-1 hover:bg-red-500/10 rounded text-muted-foreground hover:text-red-500 transition-all"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
                 </div>
 
                 <div className="mt-4">
                   {file.status === 'uploading' ? (
                     <div className="space-y-2">
-                      <div className="flex justify-between text-[10px] font-bold text-muted-foreground">
+                       <div className="flex justify-between text-[10px] font-bold text-muted-foreground">
                         <span>Uploading...</span>
                         <span>{Math.round(file.progress)}%</span>
                       </div>
@@ -170,12 +166,6 @@ const FilesPage = () => {
                         <div className="flex gap-1">
                             <button className="p-2 hover:bg-muted rounded-xl transition-all text-muted-foreground hover:text-foreground">
                                 <Download className="h-4 w-4" />
-                            </button>
-                            <button 
-                                onClick={() => removeFile(file.id)}
-                                className="p-2 hover:bg-red-500/10 rounded-xl transition-all text-muted-foreground hover:text-red-500"
-                            >
-                                <Trash2 className="h-4 w-4" />
                             </button>
                         </div>
                     </div>
