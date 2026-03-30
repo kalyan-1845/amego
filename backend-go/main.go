@@ -145,17 +145,18 @@ func triggerAI(groupID string, messageID string, text string) {
 	resp, err := client.Post("http://127.0.0.1:8000/ai", "application/json", bytes.NewBuffer(reqBody))
 	var replyText string
 	if err != nil {
-		log.Printf("AI request failed: %v", err)
-		replyText = "AI failed, try again"
+		log.Printf("ERROR: Python AI Backend unreachable: %v", err)
+		replyText = "[Connection Error] AI backend is offline. Please check if Python is running on port 8000."
 	} else {
 		defer resp.Body.Close()
 		var res map[string]interface{}
 		if err := json.NewDecoder(resp.Body).Decode(&res); err != nil {
-			replyText = "AI failed, try again"
+			log.Printf("ERROR: Failed to decode AI response: %v", err)
+			replyText = "[Format Error] Received invalid response from AI backend."
 		} else if reply, ok := res["reply"].(string); ok {
 			replyText = reply
 		} else {
-			replyText = "AI failed, try again"
+			replyText = "[AI Error] No response content received."
 		}
 	}
 
@@ -165,7 +166,7 @@ func triggerAI(groupID string, messageID string, text string) {
 		"reply":     replyText,
 	}
 
-	log.Printf("Broadcasting AI Response to group %s", groupID)
+	log.Printf("-> Sending AI Response to UI for message %s", messageID)
 	broadcastToGroup(groupID, responseMsg)
 	
 	// Persist AI response

@@ -9,6 +9,10 @@ load_dotenv()
 
 app = FastAPI()
 
+@app.get("/health")
+async def health():
+    return {"status": "ok", "provider": "Groq", "model": "llama-3.1-8b-instant"}
+
 # Configuration for Groq (OpenAI compatible)
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 BASE_URL = "https://api.groq.com/openai/v1"
@@ -52,10 +56,11 @@ async def ask_ai(req: AIRequest):
             stream=False,
         )
         reply = response.choices[0].message.content
+        print(f"AI Success for {req.text[:20]}...: {reply[:30]}...")
         return AIResponse(reply=reply)
     except Exception as e:
-        print(f"Error calling AI: {e}")
-        return AIResponse(reply="AI failed to generate a response.")
+        print(f"AI CRITICAL ERROR: {e}")
+        return AIResponse(reply=f"AI failed: {str(e)}")
 
 @app.post("/summarize", response_model=AIResponse)
 async def summarize(req: AIRequest):

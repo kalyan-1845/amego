@@ -16,7 +16,9 @@ export const useWS = ({ groupId, onMessage }: UseWSProps) => {
   }, [onMessage]);
 
   useEffect(() => {
-    const socket = new WebSocket(`ws://localhost:8080/ws?groupId=${groupId}`);
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const host = window.location.hostname || 'localhost';
+    const socket = new WebSocket(`${protocol}//${host}:8080/ws?groupId=${groupId}`);
     ws.current = socket;
 
     socket.onopen = () => {
