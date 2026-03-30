@@ -108,7 +108,7 @@ func broadcastToGroup(groupID string, msg interface{}) {
 func triggerAI(groupID string, messageID string, text string) {
 	mu.Lock()
 	group, ok := groups[groupID]
-	var history []map[string]string
+	history := make([]map[string]string, 0)
 	if ok {
 		// Get last 10 messages for context
 		start := 0
@@ -160,22 +160,22 @@ func triggerAI(groupID string, messageID string, text string) {
 		}
 	}
 
+	aiMsgID := "ai_" + messageID
 	responseMsg := map[string]interface{}{
 		"type":      "ai_response",
-		"messageId": messageID,
+		"messageId": aiMsgID,
 		"reply":     replyText,
 	}
 
-	log.Printf("-> Sending AI Response to UI for message %s", messageID)
+	log.Printf("-> Sending AI Response %s to UI for user message %s", aiMsgID, messageID)
 	broadcastToGroup(groupID, responseMsg)
 	
 	// Persist AI response
 	mu.Lock()
 	if group, ok := groups[groupID]; ok {
-		msgID := generateID()
-		group.MessageIDs = append(group.MessageIDs, msgID)
-		group.Messages[msgID] = &StoredMessage{
-			ID:     msgID,
+		group.MessageIDs = append(group.MessageIDs, aiMsgID)
+		group.Messages[aiMsgID] = &StoredMessage{
+			ID:     aiMsgID,
 			Text:   replyText,
 			User:   "assistant",
 			AIUsed: true,
@@ -245,11 +245,14 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 
 		switch msgType {
 		case "chat":
-			msgID := generateID()
+			msgID, ok := rawMsg["messageId"].(string)
+			if !ok || msgID == "" {
+				msgID = generateID()
+				rawMsg["messageId"] = msgID
+			}
+
 			text, _ := rawMsg["text"].(string)
 			user, _ := rawMsg["user"].(string)
-
-			rawMsg["messageId"] = msgID
 
 			mu.Lock()
 			group.MessageIDs = append(group.MessageIDs, msgID)

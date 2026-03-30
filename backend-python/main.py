@@ -4,8 +4,8 @@ import os
 from openai import OpenAI
 from dotenv import load_dotenv
 
-# Load .env file if it exists
-load_dotenv()
+# Load .env file if it exists and always override environment defaults
+load_dotenv(override=True)
 
 app = FastAPI()
 
