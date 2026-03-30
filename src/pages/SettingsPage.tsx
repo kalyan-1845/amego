@@ -19,7 +19,7 @@ import { useUIStore } from '../store/uiStore';
 
 const SettingsPage = () => {
   const [activeTab, setActiveTab] = useState('profile');
-  const { theme, setTheme, logout } = useUIStore();
+  const { theme, setTheme, logout, accentColor, setAccentColor } = useUIStore();
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const [sessions, setSessions] = useState(3);
@@ -229,12 +229,20 @@ const SettingsPage = () => {
                 <div className="space-y-4 pt-8 border-t border-border/30">
                   <h4 className="text-lg font-bold">Accent Color</h4>
                    <div className="flex gap-4">
-                      {['blue', 'purple', 'emerald', 'rose', 'amber'].map((color) => (
+                      {[
+                        { id: 'blue', classes: 'bg-blue-500' },
+                        { id: 'purple', classes: 'bg-purple-500' },
+                        { id: 'emerald', classes: 'bg-emerald-500' },
+                        { id: 'rose', classes: 'bg-rose-500' },
+                        { id: 'amber', classes: 'bg-amber-500' },
+                      ].map((color) => (
                         <button 
-                          key={color} 
+                          key={color.id} 
+                          onClick={() => setAccentColor(color.id)}
                           className={cn(
-                            "h-10 w-10 rounded-full border-2 transition-all",
-                            color === 'blue' ? "bg-blue-500 border-primary" : `bg-${color}-500 border-transparent hover:scale-110`
+                            "h-10 w-10 rounded-full border-2 transition-all shadow-sm",
+                            color.classes,
+                            color.id === accentColor ? "border-foreground scale-110 ring-4 ring-primary/20" : "border-transparent hover:scale-110"
                           )}
                         />
                       ))}

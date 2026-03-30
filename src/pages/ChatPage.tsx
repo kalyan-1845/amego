@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, User, Bot, Sparkles, Paperclip, MoreHorizontal, Trash2 } from 'lucide-react';
+import { Send, User, Bot, Sparkles, Paperclip, MoreHorizontal, Trash2, History } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useChatStore } from '../store/chatStore';
 import { cn } from '../utils/cn';
 import { useWS } from '../hooks/useWS';
@@ -10,7 +11,9 @@ const ChatPage = () => {
   const { messages, isLoading, addMessage, setLoading, clearMessages } = useChatStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isMoreOpen, setIsMoreOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
 
   // Group ID is fixed for now (shared lobby)
   const groupId = "default";
@@ -139,6 +142,14 @@ const ChatPage = () => {
         </div>
         <div className="flex items-center gap-2">
           <button 
+            onClick={() => setIsHistoryOpen(true)}
+            className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-xl transition-all"
+            title="Chat History"
+          >
+            <History className="h-5 w-5" />
+          </button>
+          
+          <button 
             onClick={clearMessages}
             className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
             title="Clear Chat"
@@ -166,7 +177,10 @@ const ChatPage = () => {
                     <button className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-all">
                       Export Chat
                     </button>
-                    <button className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-all">
+                    <button 
+                      onClick={() => navigate('/settings')}
+                      className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-all"
+                    >
                       Settings
                     </button>
                     <div className="h-px bg-border my-1" />
@@ -183,6 +197,45 @@ const ChatPage = () => {
           </div>
         </div>
       </div>
+
+      {/* History Modal (Mock) */}
+      <AnimatePresence>
+        {isHistoryOpen && (
+          <>
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm"
+              onClick={() => setIsHistoryOpen(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, x: 100 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 100 }}
+              className="fixed right-0 top-0 bottom-0 w-80 bg-card border-l border-border shadow-2xl z-50 flex flex-col"
+            >
+              <div className="p-4 border-b border-border/50 flex items-center justify-between">
+                <h3 className="font-bold text-lg flex items-center gap-2"><History className="h-5 w-5 text-primary" /> Chat History</h3>
+                <button onClick={() => setIsHistoryOpen(false)} className="text-muted-foreground hover:text-foreground">✕</button>
+              </div>
+              <div className="p-4 space-y-3 overflow-y-auto">
+                <div className="p-3 bg-muted/50 rounded-xl cursor-pointer hover:bg-muted transition-colors border border-border/50 text-sm">
+                  <p className="font-semibold truncate">Website Architecture Discussion</p>
+                  <p className="text-xs text-muted-foreground mt-1">Today, 2:30 PM</p>
+                </div>
+                <div className="p-3 bg-muted/50 rounded-xl cursor-pointer hover:bg-muted transition-colors border border-border/50 text-sm opacity-60">
+                  <p className="font-semibold truncate">Database Schema Design</p>
+                  <p className="text-xs text-muted-foreground mt-1">Yesterday, 10:15 AM</p>
+                </div>
+                <div className="text-center p-4 text-xs text-muted-foreground">
+                  History is synced via cloud storage.
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 scrollbar-thin scrollbar-thumb-border">

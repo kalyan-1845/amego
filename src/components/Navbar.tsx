@@ -10,13 +10,17 @@ import {
   LogOut
 } from 'lucide-react';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../utils/cn';
 import { useUIStore } from '../store/uiStore';
 
 const Navbar = () => {
-  const { theme, toggleTheme, setSearchOpen, notifications, markAsRead } = useUIStore();
+  const { theme, toggleTheme, setSearchOpen, notifications, markAsRead, logout } = useUIStore();
+  const navigate = useNavigate();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
   const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
@@ -105,15 +109,24 @@ const Navbar = () => {
               </div>
               
               <div className="space-y-0.5">
-                <button className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-all">
+                <button 
+                  onClick={() => { setIsProfileOpen(false); navigate('/settings'); }}
+                  className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-all"
+                >
                   <User className="h-4 w-4" />
                   Profile
                 </button>
-                <button className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-all">
+                <button 
+                  onClick={() => { setIsProfileOpen(false); navigate('/settings'); }}
+                  className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-all"
+                >
                   <Settings className="h-4 w-4" />
                   Settings
                 </button>
-                <button className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-all">
+                <button 
+                  onClick={() => { setIsProfileOpen(false); setIsHelpOpen(true); }}
+                  className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-all"
+                >
                   <HelpCircle className="h-4 w-4" />
                   Help Center
                 </button>
@@ -121,7 +134,10 @@ const Navbar = () => {
               
               <div className="h-px bg-border my-1" />
               
-              <button className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-red-500 hover:bg-red-500/10 transition-all">
+              <button 
+                onClick={() => { setIsProfileOpen(false); logout(); }}
+                className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-red-500 hover:bg-red-500/10 transition-all"
+              >
                 <LogOut className="h-4 w-4" />
                 Sign out
               </button>
@@ -129,6 +145,55 @@ const Navbar = () => {
           )}
         </div>
       </div>
+
+      {/* Help Center Modal */}
+      <AnimatePresence>
+        {isHelpOpen && (
+          <>
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm"
+              onClick={() => setIsHelpOpen(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-card border border-border shadow-2xl z-50 rounded-3xl overflow-hidden"
+            >
+              <div className="p-6 text-center border-b border-border/50 bg-muted/30">
+                <div className="h-16 w-16 mx-auto bg-primary/10 rounded-full flex items-center justify-center mb-4">
+                  <HelpCircle className="h-8 w-8 text-primary" />
+                </div>
+                <h3 className="text-2xl font-black">Help Center</h3>
+                <p className="text-muted-foreground text-sm mt-1">We're here to help you get things done.</p>
+              </div>
+              
+              <div className="p-6 space-y-4">
+                <div className="p-4 rounded-xl border border-border/50 hover:border-primary/50 transition-colors cursor-pointer group">
+                  <h4 className="font-bold group-hover:text-primary transition-colors">Documentation</h4>
+                  <p className="text-xs text-muted-foreground mt-1">Read guides and tutorials.</p>
+                </div>
+                <div className="p-4 rounded-xl border border-border/50 hover:border-primary/50 transition-colors cursor-pointer group">
+                  <h4 className="font-bold group-hover:text-primary transition-colors">Contact Support</h4>
+                  <p className="text-xs text-muted-foreground mt-1">Send us an email directly.</p>
+                </div>
+              </div>
+              
+              <div className="p-4 bg-muted/50 border-t border-border/50">
+                <button 
+                  onClick={() => setIsHelpOpen(false)}
+                  className="w-full py-3 bg-primary text-primary-foreground font-bold rounded-xl shadow-lg shadow-primary/20 hover:scale-[0.98] transition-all"
+                >
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </header>
   );
 };
