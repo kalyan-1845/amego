@@ -20,8 +20,13 @@ client = OpenAI(
     base_url=BASE_URL,
 )
 
+class AIMessage(BaseModel):
+    role: str
+    content: str
+
 class AIRequest(BaseModel):
     text: str
+    history: list[AIMessage] = []
 
 class AIResponse(BaseModel):
     reply: str
@@ -32,12 +37,19 @@ async def ask_ai(req: AIRequest):
         return AIResponse(reply="AI Error: Please set the AIML_API_KEY in the .env file in backend-python/")
         
     try:
+        # Construct messages from history + current text
+        messages = [{"role": "system", "content": "You are a helpful assistant for AmeGo collaboration platform."}]
+        
+        # Add past history
+        for msg in req.history:
+            messages.append({"role": msg.role, "content": msg.content})
+            
+        # Add current user message
+        messages.append({"role": "user", "content": req.text})
+
         response = client.chat.completions.create(
             model="gpt-4o",
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant for AmeGo collaboration platform."},
-                {"role": "user", "content": req.text},
-            ],
+            messages=messages,
             stream=False,
         )
         reply = response.choices[0].message.content

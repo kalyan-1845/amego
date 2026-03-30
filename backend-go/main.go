@@ -38,8 +38,9 @@ type StoredMessage struct {
 }
 
 type GroupData struct {
-	Clients  map[*Client]bool
-	Messages map[string]*StoredMessage
+	Clients    map[*Client]bool
+	Messages   map[string]*StoredMessage
+	MessageIDs []string // Order of messages
 }
 
 var (
@@ -80,12 +81,40 @@ func broadcastToGroup(groupID string, msg interface{}) {
 }
 
 func triggerAI(groupID string, messageID string, text string) {
-	reqBody, _ := json.Marshal(map[string]string{
-		"text": text,
+	mu.Lock()
+	group, ok := groups[groupID]
+	var history []map[string]string
+	if ok {
+		// Get last 10 messages for context
+		start := 0
+		if len(group.MessageIDs) > 10 {
+			start = len(group.MessageIDs) - 10
+		}
+		for i := start; i < len(group.MessageIDs); i++ {
+			id := group.MessageIDs[i]
+			if id == messageID {
+				continue // Skip current message, added separately
+			}
+			msg := group.Messages[id]
+			role := "user"
+			if msg.User == "assistant" || msg.AIUsed {
+				role = "assistant"
+			}
+			history = append(history, map[string]string{
+				"role":    role,
+				"content": msg.Text,
+			})
+		}
+	}
+	mu.Unlock()
+
+	reqBody, _ := json.Marshal(map[string]interface{}{
+		"text":    text,
+		"history": history,
 	})
 
 	client := &http.Client{
-		Timeout: 5 * time.Second,
+		Timeout: 10 * time.Second,
 	}
 
 	resp, err := client.Post("http://127.0.0.1:8000/ai", "application/json", bytes.NewBuffer(reqBody))
@@ -125,8 +154,9 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 	group, exists := groups[groupID]
 	if !exists {
 		group = &GroupData{
-			Clients:  make(map[*Client]bool),
-			Messages: make(map[string]*StoredMessage),
+			Clients:    make(map[*Client]bool),
+			Messages:   make(map[string]*StoredMessage),
+			MessageIDs: []string{},
 		}
 		groups[groupID] = group
 	}
@@ -178,6 +208,7 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 			rawMsg["messageId"] = msgID
 
 			mu.Lock()
+			group.MessageIDs = append(group.MessageIDs, msgID)
 			group.Messages[msgID] = &StoredMessage{
 				ID:     msgID,
 				Text:   text,
@@ -206,6 +237,9 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 
 			go triggerAI(groupID, msgID, textToAsk)
 
+		case "typing":
+			// Just broadcast the typing status to others in the group
+			broadcastToGroup(groupID, rawMsg)
 		case "offer", "answer", "ice-candidate":
 			// For signaling, broadcast to everyone in the group
 			// (Clients must use "user" or similar field to ignore their own echoes if needed, 
