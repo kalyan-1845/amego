@@ -22,6 +22,8 @@ const SettingsPage = () => {
   const { theme, setTheme, logout } = useUIStore();
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
+  const [sessions, setSessions] = useState(3);
+  const [is2faEnabled, setIs2faEnabled] = useState(false);
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -29,6 +31,11 @@ const SettingsPage = () => {
       const url = URL.createObjectURL(file);
       setProfileImage(url);
     }
+  };
+
+  const handleLogoutOthers = () => {
+    setSessions(1);
+    // In a real app, this would call an API to invalidate other sessions
   };
 
   const tabs = [
@@ -284,7 +291,7 @@ const SettingsPage = () => {
                 </div>
 
                 <div className="space-y-6">
-                  <div className="p-6 bg-muted/30 rounded-3xl border border-border/30 flex items-center justify-between">
+                  <div className="p-6 bg-muted/30 rounded-3xl border border-border/30 flex items-center justify-between transition-all hover:bg-muted/40">
                     <div className="flex items-center gap-4">
                       <div className="h-12 w-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500">
                         <Shield className="h-6 w-6" />
@@ -294,20 +301,41 @@ const SettingsPage = () => {
                         <p className="text-xs text-muted-foreground">Add an extra layer of security to your account.</p>
                       </div>
                     </div>
-                    <button className="px-5 py-2 bg-primary/10 text-primary font-bold rounded-xl hover:bg-primary/20 transition-all">Enable</button>
+                    <button 
+                      onClick={() => setIs2faEnabled(!is2faEnabled)}
+                      className={cn(
+                        "px-5 py-2 font-bold rounded-xl transition-all",
+                        is2faEnabled 
+                          ? "bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20" 
+                          : "bg-primary/10 text-primary hover:bg-primary/20"
+                      )}
+                    >
+                      {is2faEnabled ? 'Enabled' : 'Enable'}
+                    </button>
                   </div>
 
-                  <div className="p-6 bg-muted/30 rounded-3xl border border-border/30 flex items-center justify-between">
+                  <div className="p-6 bg-muted/30 rounded-3xl border border-border/30 flex items-center justify-between transition-all hover:bg-muted/40">
                     <div className="flex items-center gap-4">
                       <div className="h-12 w-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500">
                         <LogOut className="h-6 w-6" />
                       </div>
                       <div>
                         <p className="font-bold">Active Sessions</p>
-                        <p className="text-xs text-muted-foreground">Logged in from 3 devices (SF, London, Tokyo)</p>
+                        <p className="text-xs text-muted-foreground">
+                          {sessions > 1 
+                            ? `Logged in from ${sessions} devices (SF, London, Tokyo)` 
+                            : 'Logged in from this device only'}
+                        </p>
                       </div>
                     </div>
-                    <button className="px-5 py-2 text-muted-foreground font-bold hover:text-red-500 transition-all">Logout Others</button>
+                    {sessions > 1 && (
+                      <button 
+                        onClick={handleLogoutOthers}
+                        className="px-5 py-2 text-muted-foreground font-bold hover:text-red-500 transition-all hover:bg-red-500/5 rounded-xl"
+                      >
+                        Logout Others
+                      </button>
+                    )}
                   </div>
                 </div>
               </motion.div>

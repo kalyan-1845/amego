@@ -68,6 +68,20 @@ const FilesPage = () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  const handleDownload = (file: FileItem) => {
+    // Basic mock download
+    const content = `Mock content for ${file.name}`;
+    const blob = new Blob([content], { type: file.type || 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = file.name;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-6 max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-5 duration-700">
       <div className="flex items-center justify-between">
@@ -165,7 +179,10 @@ const FilesPage = () => {
                             Completed
                         </div>
                         <div className="flex gap-1">
-                            <button className="p-2 hover:bg-muted rounded-xl transition-all text-muted-foreground hover:text-foreground">
+                            <button 
+                              onClick={() => handleDownload(file)}
+                              className="p-2 hover:bg-muted rounded-xl transition-all text-muted-foreground hover:text-foreground"
+                            >
                                 <Download className="h-4 w-4" />
                             </button>
                         </div>
