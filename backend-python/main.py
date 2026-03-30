@@ -47,7 +47,7 @@ async def ask_ai(req: AIRequest):
         messages.append({"role": "user", "content": req.text})
 
         response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="llama-3.1-8b-instant",
             messages=messages,
             stream=False,
         )
@@ -64,7 +64,7 @@ async def summarize(req: AIRequest):
         
     try:
         response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="llama-3.1-8b-instant",
             messages=[
                 {"role": "system", "content": "You are an expert summarizer. Provide a concise, professional summary of the text provided. Use bullet points if necessary."},
                 {"role": "user", "content": f"Please summarize this: {req.text}"},
