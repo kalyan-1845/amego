@@ -1,11 +1,24 @@
+import { useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Navbar from '../components/Navbar';
-import SearchModal from '../components/SearchModal';
+import { SearchModal } from '../components/SearchModal';
 import { useUIStore } from '../store/uiStore';
 
 const MainLayout = () => {
-  const { isSidebarOpen, toggleSidebar } = useUIStore();
+  const { isSidebarOpen, toggleSidebar, isSearchOpen, setSearchOpen } = useUIStore();
+
+  // CMD+K Shortcut Listener
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setSearchOpen(!isSearchOpen);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isSearchOpen, setSearchOpen]);
 
   return (
     <div className="flex h-screen bg-background text-foreground overflow-hidden font-sans selection:bg-primary/20 selection:text-primary">
@@ -24,7 +37,7 @@ const MainLayout = () => {
       </div>
 
       {/* Global Search Modal */}
-      <SearchModal />
+      <SearchModal isOpen={isSearchOpen} onClose={() => setSearchOpen(false)} />
     </div>
   );
 };

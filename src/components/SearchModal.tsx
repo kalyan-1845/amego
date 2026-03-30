@@ -1,161 +1,177 @@
-import { useEffect } from 'react';
-import { Command } from 'cmdk';
-import { 
-  Search, 
-  MessageSquare, 
-  FileText, 
-  Files, 
-  Settings, 
-  Sparkles,
-  Command as CommandIcon,
-  ChevronRight
-} from 'lucide-react';
-import { useUIStore } from '../store/uiStore';
-import { cn } from '../utils/cn';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, FileText, MessageSquare, File, CornerDownLeft, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useNotesStore } from '../store/notesStore';
+import { useChatStore } from '../store/chatStore';
+import { useFilesStore } from '../store/filesStore';
 
-const SearchModal = () => {
-  const { isSearchOpen, setSearchOpen } = useUIStore();
+interface SearchResult {
+  id: string;
+  type: 'note' | 'chat' | 'file';
+  title: string;
+  excerpt: string;
+  path: string;
+}
+
+export const SearchModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+  const [query, setQuery] = useState('');
   const navigate = useNavigate();
+  
+  const notes = useNotesStore((state) => state.notes);
+  const messages = useChatStore((state) => state.messages);
+  const files = useFilesStore((state) => state.files);
 
-  // Toggle open state on Ctrl+K
+  const [results, setResults] = useState<SearchResult[]>([]);
+
   useEffect(() => {
-    const down = (e: KeyboardEvent) => {
-      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        setSearchOpen(!isSearchOpen);
+    if (!query.trim()) {
+      setResults([]);
+      return;
+    }
+
+    const searchResults: SearchResult[] = [];
+    const searchLower = query.toLowerCase();
+
+    // Search Notes
+    notes.forEach(note => {
+      if (note.title.toLowerCase().includes(searchLower) || note.content.toLowerCase().includes(searchLower)) {
+        searchResults.push({
+          id: note.id,
+          type: 'note',
+          title: note.title,
+          excerpt: note.content.slice(0, 60) + '...',
+          path: '/notes'
+        });
       }
+    });
+
+    // Search Chats
+    messages.forEach(msg => {
+      if (msg.content.toLowerCase().includes(searchLower)) {
+        searchResults.push({
+          id: msg.id,
+          type: 'chat',
+          title: 'Chat Message',
+          excerpt: msg.content.slice(0, 60) + '...',
+          path: '/chat'
+        });
+      }
+    });
+
+    // Search Files
+    files.forEach(file => {
+      if (file.name.toLowerCase().includes(searchLower)) {
+        searchResults.push({
+          id: file.id,
+          type: 'file',
+          title: file.name,
+          excerpt: `File • ${(file.size / 1024).toFixed(1)} KB`,
+          path: '/files'
+        });
+      }
+    });
+
+    setResults(searchResults.slice(0, 8));
+  }, [query, notes, messages, files]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
     };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
-    document.addEventListener('keydown', down);
-    return () => document.removeEventListener('keydown', down);
-  }, [isSearchOpen, setSearchOpen]);
-
-  const runCommand = (command: () => void) => {
-    setSearchOpen(false);
-    command();
+  const handleSelect = (result: SearchResult) => {
+    navigate(result.path);
+    onClose();
   };
 
   return (
-    <div className={cn(
-      "fixed inset-0 z-[100] flex items-start justify-center pt-[15vh] px-4 transition-all duration-300",
-      isSearchOpen ? "opacity-100 pointer-events-auto backdrop-blur-md bg-black/40" : "opacity-0 pointer-events-none"
-    )}>
-      <Command 
-        className={cn(
-          "w-full max-w-2xl bg-card border border-border shadow-2xl rounded-3xl overflow-hidden shadow-primary/10 transition-transform duration-300",
-          isSearchOpen ? "scale-100" : "scale-95"
-        )}
-        onKeyDown={(e) => {
-          if (e.key === 'Escape') setSearchOpen(false);
-        }}
-      >
-        <div className="flex items-center border-b border-border px-4 py-3 bg-muted/20">
-          <Search className="h-5 w-5 text-muted-foreground mr-3" />
-          <Command.Input 
-            placeholder="Type a command or search for anything..." 
-            className="flex-1 bg-transparent border-none outline-none text-lg text-foreground placeholder:text-muted-foreground/50 h-10"
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="fixed inset-0 bg-zinc-950/60 backdrop-blur-sm z-[999]"
           />
-          <div className="flex items-center gap-1.5 px-2 py-1 bg-muted rounded-lg border border-border/50 text-muted-foreground font-mono text-[10px] uppercase font-black">
-            ESC
-          </div>
-        </div>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: -20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: -20 }}
+            className="fixed left-1/2 top-[15%] -translate-x-1/2 w-full max-w-2xl bg-card border border-border/50 rounded-3xl shadow-2xl z-[1000] overflow-hidden"
+          >
+            <div className="relative p-4 border-b border-border">
+              <Search className="absolute left-6 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+              <input
+                autoFocus
+                placeholder="Search notes, chats, and files..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                className="w-full bg-transparent pl-12 pr-4 py-2 text-lg outline-none placeholder:text-muted-foreground/50"
+              />
+              <button 
+                onClick={onClose}
+                className="absolute right-6 top-1/2 -translate-y-1/2 p-1 hover:bg-muted rounded-lg transition-all"
+              >
+                <X className="h-4 w-4 text-muted-foreground" />
+              </button>
+            </div>
 
-        <Command.List className="max-h-[400px] overflow-y-auto p-2 scrollbar-hide">
-          <Command.Empty className="p-12 text-center flex flex-col items-center justify-center grayscale opacity-50">
-             <div className="h-16 w-16 rounded-3xl bg-muted flex items-center justify-center mb-4">
-                <Search className="h-8 w-8 text-muted-foreground" />
-             </div>
-             <p className="text-xl font-black italic">No matches found</p>
-             <p className="text-sm text-muted-foreground mt-2">Try searching for "chat", "settings", or "roadmap".</p>
-          </Command.Empty>
+            <div className="max-h-[400px] overflow-y-auto p-2">
+              {results.length > 0 ? (
+                <div className="space-y-1">
+                  {results.map((result) => (
+                    <button
+                      key={result.id}
+                      onClick={() => handleSelect(result)}
+                      className="w-full text-left p-3 rounded-2xl hover:bg-primary/10 group flex items-center gap-4 transition-all"
+                    >
+                      <div className="h-10 w-10 rounded-xl bg-muted group-hover:bg-primary/20 flex items-center justify-center transition-colors">
+                        {result.type === 'note' && <FileText className="h-5 w-5 text-blue-500" />}
+                        {result.type === 'chat' && <MessageSquare className="h-5 w-5 text-emerald-500" />}
+                        {result.type === 'file' && <File className="h-5 w-5 text-amber-500" />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-sm truncate">{result.title}</h4>
+                        <p className="text-xs text-muted-foreground truncate">{result.excerpt}</p>
+                      </div>
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                        <CornerDownLeft className="h-4 w-4 text-primary" />
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              ) : query ? (
+                <div className="p-12 text-center">
+                  <p className="text-muted-foreground">No matches found for "{query}"</p>
+                </div>
+              ) : (
+                <div className="p-8 text-center space-y-4">
+                  <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground/60">Quick Actions</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="p-3 bg-muted/30 rounded-2xl border border-border/50 text-xs font-medium text-left">
+                       Press <kbd className="bg-muted px-1.5 py-0.5 rounded border border-border">ESC</kbd> to close
+                    </div>
+                    <div className="p-3 bg-muted/30 rounded-2xl border border-border/50 text-xs font-medium text-left">
+                       <span className="text-primary">↑ ↓</span> to navigate
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
 
-          <Command.Group heading={<span className="px-3 py-2 block text-xs font-black uppercase tracking-[0.2em] text-muted-foreground/60 italic">Navigation</span>}>
-            <SearchItem 
-              icon={MessageSquare} 
-              label="Open AI Chat" 
-              shortcut="↵" 
-              onSelect={() => runCommand(() => navigate('/chat'))} 
-            />
-            <SearchItem 
-              icon={FileText} 
-              label="My Notes" 
-              onSelect={() => runCommand(() => navigate('/notes'))} 
-            />
-            <SearchItem 
-              icon={Files} 
-              label="File Management" 
-              onSelect={() => runCommand(() => navigate('/files'))} 
-            />
-          </Command.Group>
-
-          <Command.Group heading={<span className="px-3 py-2 block text-xs font-black uppercase tracking-[0.2em] text-muted-foreground/60 italic">AI Actions</span>}>
-            <SearchItem 
-              icon={Sparkles} 
-              label="Generate AI Summary" 
-              onSelect={() => runCommand(() => console.log('AI action'))} 
-              color="text-indigo-500"
-            />
-          </Command.Group>
-
-          <Command.Group heading={<span className="px-3 py-2 block text-xs font-black uppercase tracking-[0.2em] text-muted-foreground/60 italic">Account</span>}>
-            <SearchItem 
-              icon={Settings} 
-              label="Open Settings" 
-              onSelect={() => runCommand(() => navigate('/settings'))} 
-            />
-          </Command.Group>
-        </Command.List>
-
-        <div className="p-3 border-t border-border flex items-center justify-between bg-muted/10">
-          <div className="flex items-center gap-4">
-             <div className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground/50">
-                <ChevronRight className="h-3 w-3" />
-                Select
-             </div>
-             <div className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-muted-foreground/50">
-                <CommandIcon className="h-3 w-3" />
-                Navigate
-             </div>
-          </div>
-          <div className="flex items-center gap-2">
-             <Sparkles className="h-4 w-4 text-primary animate-pulse" />
-             <span className="text-[10px] font-black italic text-primary/80 uppercase tracking-widest">Enhanced by Amego AI</span>
-          </div>
-        </div>
-      </Command>
-    </div>
-  );
-};
-
-interface SearchItemProps {
-  icon: any;
-  label: string;
-  shortcut?: string;
-  onSelect: () => void;
-  color?: string;
-}
-
-const SearchItem = ({ icon: Icon, label, shortcut, onSelect, color }: SearchItemProps) => {
-  return (
-    <Command.Item
-      onSelect={onSelect}
-      className="flex items-center justify-between px-3 py-3.5 rounded-xl cursor-default select-none aria-selected:bg-primary aria-selected:text-primary-foreground aria-selected:shadow-lg aria-selected:shadow-primary/20 transition-all duration-200 group"
-    >
-      <div className="flex items-center gap-3">
-        <div className={cn(
-          "h-8 w-8 rounded-lg flex items-center justify-center bg-muted group-aria-selected:bg-white/20 transition-colors",
-          color
-        )}>
-          <Icon className="h-5 w-5" />
-        </div>
-        <span className="font-bold text-sm tracking-tight">{label}</span>
-      </div>
-      {shortcut && (
-        <span className="text-xs group-aria-selected:text-primary-foreground text-muted-foreground/40 font-mono font-black italic">{shortcut}</span>
+            <div className="p-3 bg-muted/30 border-t border-border flex justify-between items-center text-[10px] uppercase font-bold tracking-widest text-muted-foreground/60">
+                <span>AmeGo Global Index</span>
+                <span>CMD + K</span>
+            </div>
+          </motion.div>
+        </>
       )}
-    </Command.Item>
+    </AnimatePresence>
   );
 };
-
-export default SearchModal;

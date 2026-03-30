@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"os"
 )
 
 var upgrader = websocket.Upgrader{
@@ -46,7 +47,31 @@ type GroupData struct {
 var (
 	groups = make(map[string]*GroupData)
 	mu     sync.Mutex
+	dbPath = "data.json"
 )
+
+func saveToDisk() {
+	data, err := json.MarshalIndent(groups, "", "  ")
+	if err != nil {
+		log.Printf("Save error: %v", err)
+		return
+	}
+	os.WriteFile(dbPath, data, 0644)
+}
+
+func loadFromDisk() {
+	data, err := os.ReadFile(dbPath)
+	if err != nil {
+		return
+	}
+	mu.Lock()
+	json.Unmarshal(data, &groups)
+	// Clean up clients after loading
+	for _, g := range groups {
+		g.Clients = make(map[*Client]bool)
+	}
+	mu.Unlock()
+}
 
 // Generate a simple unique ID
 func generateID() string {
@@ -140,7 +165,23 @@ func triggerAI(groupID string, messageID string, text string) {
 		"reply":     replyText,
 	}
 
+	log.Printf("Broadcasting AI Response to group %s", groupID)
 	broadcastToGroup(groupID, responseMsg)
+	
+	// Persist AI response
+	mu.Lock()
+	if group, ok := groups[groupID]; ok {
+		msgID := generateID()
+		group.MessageIDs = append(group.MessageIDs, msgID)
+		group.Messages[msgID] = &StoredMessage{
+			ID:     msgID,
+			Text:   replyText,
+			User:   "assistant",
+			AIUsed: true,
+		}
+		saveToDisk()
+	}
+	mu.Unlock()
 }
 
 func handleConnections(w http.ResponseWriter, r *http.Request) {
@@ -166,15 +207,17 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "group full", http.StatusForbidden)
 		return
 	}
+	mu.Unlock() // Release early
 
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		mu.Unlock()
 		log.Printf("Upgrade error: %v", err)
 		return
 	}
 
 	client := &Client{conn: ws}
+	
+	mu.Lock()
 	group.Clients[client] = true
 	log.Printf("Client connected to group %s. Total users: %d", groupID, len(group.Clients))
 	mu.Unlock()
@@ -215,6 +258,7 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 				User:   user,
 				AIUsed: false,
 			}
+			saveToDisk()
 			mu.Unlock()
 
 			broadcastToGroup(groupID, rawMsg)
@@ -251,6 +295,7 @@ func handleConnections(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	loadFromDisk()
 	http.HandleFunc("/ws", handleConnections)
 
 	port := ":8080"

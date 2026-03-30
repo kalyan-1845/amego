@@ -15,13 +15,16 @@ const ChatPage = () => {
   // Group ID is fixed for now (shared lobby)
   const groupId = "default";
 
+  const [typingUser, setTypingUser] = useState<string | null>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const onWSMessage = useCallback((data: any) => {
     if (data.type === "chat") {
       // Avoid duplicate local messages if we added it manually already
       const exists = useChatStore.getState().messages.some(m => m.id === data.messageId);
       if (!exists) {
         addMessage({ 
-          role: data.user === 'user' ? 'user' : 'assistant', 
+          role: data.user === 'assistant' ? 'assistant' : 'user', 
           content: data.text 
         });
       }
@@ -31,10 +34,25 @@ const ChatPage = () => {
          role: 'assistant', 
          content: data.reply 
        });
+    } else if (data.type === "typing") {
+       // Only show if it's NOT our own typing (or if we have user IDs)
+       // For this demo, let's assume if it comes from WS, someone else is typing
+       setTypingUser("Someone");
+       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+       typingTimeoutRef.current = setTimeout(() => setTypingUser(null), 3000);
     }
   }, [addMessage, setLoading]);
 
   const { sendMessage, isConnected } = useWS({ groupId, onMessage: onWSMessage });
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value);
+    
+    // Broadcast typing status
+    if (isConnected) {
+        sendMessage({ type: "typing", isTyping: true });
+    }
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -42,7 +60,7 @@ const ChatPage = () => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, isLoading]);
+  }, [messages, isLoading, typingUser]);
 
   const handleSend = async () => {
     if (!inputValue.trim() || !isConnected) {
@@ -53,8 +71,16 @@ const ChatPage = () => {
     const userMessage = inputValue;
     setInputValue('');
     
-    // 1. Send text message to Go Backend
+    // Stop typing indicator on send
+    sendMessage({ type: "typing", isTyping: false });
+
+    // 1. Generate a single ID for both local and server
     const msgId = Math.random().toString(36).substring(7);
+
+    // 2. Add to local state WITH the specific ID
+    addMessage({ id: msgId, role: 'user', content: userMessage });
+
+    // 3. Send text message to Go Backend
     sendMessage({
         type: "chat",
         text: userMessage,
@@ -62,10 +88,7 @@ const ChatPage = () => {
         messageId: msgId
     });
 
-    // 2. Add to local state
-    addMessage({ role: 'user', content: userMessage });
-
-    // 3. Automatically ask AI for a response via Go backend
+    // 4. Automatically ask AI for a response via Go backend
     setLoading(true);
     sendMessage({
         type: "ask_ai",
@@ -211,6 +234,17 @@ const ChatPage = () => {
             </div>
           </motion.div>
         )}
+
+        {typingUser && (
+           <motion.div
+             initial={{ opacity: 0, y: 5 }}
+             animate={{ opacity: 1, y: 0 }}
+             className="flex items-center gap-2 text-xs text-muted-foreground ml-12"
+           >
+              <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+              <span>{typingUser} is typing...</span>
+           </motion.div>
+        )}
         <div ref={messagesEndRef} />
       </div>
 
@@ -239,7 +273,7 @@ const ChatPage = () => {
           <input
             type="text"
             value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
+            onChange={handleInputChange}
             disabled={!isConnected}
             placeholder={isConnected ? "Ask me anything..." : "Disconnected - Start Go Backend to Chat"}
             className="w-full bg-background border border-border/60 hover:border-border/100 focus:border-blue-500/50 rounded-2xl pl-14 pr-16 py-4 shadow-sm transition-all focus:outline-none focus:ring-4 focus:ring-blue-500/10 placeholder:text-muted-foreground/60 disabled:cursor-not-allowed"

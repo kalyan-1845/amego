@@ -9,14 +9,13 @@ load_dotenv()
 
 app = FastAPI()
 
-# Configuration for AIML API (OpenAI compatible)
-# Get API key from env, default to empty string
-AIML_API_KEY = os.getenv("AIML_API_KEY", "")
-BASE_URL = "https://api.aimlapi.com/v1"
+# Configuration for Groq (OpenAI compatible)
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+BASE_URL = "https://api.groq.com/openai/v1"
 
 # Initialize Client
 client = OpenAI(
-    api_key=AIML_API_KEY,
+    api_key=GROQ_API_KEY,
     base_url=BASE_URL,
 )
 
@@ -33,8 +32,8 @@ class AIResponse(BaseModel):
 
 @app.post("/ai", response_model=AIResponse)
 async def ask_ai(req: AIRequest):
-    if not AIML_API_KEY:
-        return AIResponse(reply="AI Error: Please set the AIML_API_KEY in the .env file in backend-python/")
+    if not GROQ_API_KEY:
+        return AIResponse(reply="AI Error: Please set the GROQ_API_KEY in the .env file in backend-python/")
         
     try:
         # Construct messages from history + current text
@@ -48,7 +47,7 @@ async def ask_ai(req: AIRequest):
         messages.append({"role": "user", "content": req.text})
 
         response = client.chat.completions.create(
-            model="gpt-4o",
+            model="llama-3.3-70b-versatile",
             messages=messages,
             stream=False,
         )
@@ -60,12 +59,12 @@ async def ask_ai(req: AIRequest):
 
 @app.post("/summarize", response_model=AIResponse)
 async def summarize(req: AIRequest):
-    if not AIML_API_KEY:
-        return AIResponse(reply="AI Error: Please set the AIML_API_KEY in the .env file.")
+    if not GROQ_API_KEY:
+        return AIResponse(reply="AI Error: Please set the GROQ_API_KEY in the .env file.")
         
     try:
         response = client.chat.completions.create(
-            model="gpt-4o",
+            model="llama-3.3-70b-versatile",
             messages=[
                 {"role": "system", "content": "You are an expert summarizer. Provide a concise, professional summary of the text provided. Use bullet points if necessary."},
                 {"role": "user", "content": f"Please summarize this: {req.text}"},

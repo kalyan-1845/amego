@@ -11,7 +11,7 @@ export interface Message {
 interface ChatState {
   messages: Message[];
   isLoading: boolean;
-  addMessage: (message: Omit<Message, 'id' | 'timestamp'>) => void;
+  addMessage: (message: Omit<Message, 'timestamp'>) => void;
   setLoading: (loading: boolean) => void;
   clearMessages: () => void;
 }
@@ -33,7 +33,7 @@ export const useChatStore = create<ChatState>()(
           ...state.messages,
           {
             ...message,
-            id: Math.random().toString(36).substring(7),
+            id: message.id || Math.random().toString(36).substring(7),
             timestamp: Date.now(),
           },
         ],
