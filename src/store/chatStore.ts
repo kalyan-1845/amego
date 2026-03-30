@@ -11,7 +11,7 @@ export interface Message {
 interface ChatState {
   messages: Message[];
   isLoading: boolean;
-  addMessage: (message: Omit<Message, 'timestamp'>) => void;
+  addMessage: (message: Omit<Message, 'id' | 'timestamp'> & { id?: string }) => void;
   setLoading: (loading: boolean) => void;
   clearMessages: () => void;
 }

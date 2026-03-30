@@ -16,7 +16,7 @@ const ChatPage = () => {
   const groupId = "default";
 
   const [typingUser, setTypingUser] = useState<string | null>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const typingTimeoutRef = useRef<any>(null);
 
   const onWSMessage = useCallback((data: any) => {
     if (data.type === "chat") {
@@ -24,6 +24,7 @@ const ChatPage = () => {
       const exists = useChatStore.getState().messages.some(m => m.id === data.messageId);
       if (!exists) {
         addMessage({ 
+          id: data.messageId,
           role: data.user === 'assistant' ? 'assistant' : 'user', 
           content: data.text 
         });
@@ -31,6 +32,7 @@ const ChatPage = () => {
     } else if (data.type === "ai_response") {
        setLoading(false);
        addMessage({ 
+         id: data.messageId,
          role: 'assistant', 
          content: data.reply 
        });

@@ -8,6 +8,12 @@ interface UseWSProps {
 export const useWS = ({ groupId, onMessage }: UseWSProps) => {
   const ws = useRef<WebSocket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const onMessageRef = useRef(onMessage);
+
+  // Keep the ref updated without re-triggering the effect
+  useEffect(() => {
+    onMessageRef.current = onMessage;
+  }, [onMessage]);
 
   useEffect(() => {
     const socket = new WebSocket(`ws://localhost:8080/ws?groupId=${groupId}`);
@@ -19,8 +25,12 @@ export const useWS = ({ groupId, onMessage }: UseWSProps) => {
     };
 
     socket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      onMessage(data);
+      try {
+        const data = JSON.parse(event.data);
+        onMessageRef.current(data);
+      } catch (err) {
+        console.error("Failed to parse WS message:", err);
+      }
     };
 
     socket.onclose = () => {
@@ -28,14 +38,21 @@ export const useWS = ({ groupId, onMessage }: UseWSProps) => {
       setIsConnected(false);
     };
 
+    socket.onerror = (err) => {
+      console.error('WS Error:', err);
+    };
+
     return () => {
+      console.log('Cleaning up WS');
       socket.close();
     };
-  }, [groupId, onMessage]);
+  }, [groupId]); // Only reconnect if groupId changes
 
   const sendMessage = useCallback((msg: any) => {
     if (ws.current?.readyState === WebSocket.OPEN) {
       ws.current.send(JSON.stringify(msg));
+    } else {
+      console.warn("Attempted to send message while WS is not open", msg);
     }
   }, []);
 
