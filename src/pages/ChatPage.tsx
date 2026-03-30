@@ -101,14 +101,18 @@ const ChatPage = () => {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      const uploadId = Math.random().toString(36).substring(7);
       addMessage({ 
+        id: uploadId,
         role: 'user', 
         content: `[File Uploaded] ${file.name} (${(file.size / 1024).toFixed(1)} KB)` 
       });
       setLoading(true);
-      // Logic for backend ingestion would go here - for now mock
+      
+      const responseId = Math.random().toString(36).substring(7);
       setTimeout(() => {
          addMessage({ 
+            id: responseId,
             role: 'assistant', 
             content: `I've analyzed your file "${file.name}". Let me know if you want me to summarize or extract anything.` 
          });
